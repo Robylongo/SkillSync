@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+python-dotenv
+requests
+PyMuPDF
+pytest
+spacy
