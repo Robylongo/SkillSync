@@ -9,8 +9,8 @@ SkillSync is a personalized learning recommender that analyzes your github and r
 
 ## Tech Stack
 Backend: Python, Flask\
-Database: SQLAlchemy
-Auth: Github OAuth
+Database: SQLAlchemy\
+Auth: Github OAuth\
 NLP: spaCy, TF-IDF
 
 ## Roadmap
