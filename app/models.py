@@ -8,5 +8,6 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    github_username = db.Column(db.String, unique=True)
+    access_token = db.Columnd(db.String(64), nullable = False, unique = True)
+    github_username = db.Column(db.String(64), nullable = False, unique=True)
     resume_uploaded = db.Column(db.Boolean, default=False)
