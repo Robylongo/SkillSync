@@ -11,3 +11,7 @@ class User(db.Model):
     access_token = db.Columnd(db.String(64), nullable = False, unique = True)
     github_username = db.Column(db.String(64), nullable = False, unique=True)
     resume_uploaded = db.Column(db.Boolean, default=False)
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
