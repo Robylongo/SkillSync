@@ -46,7 +46,7 @@ class User(db.Model):
     def access_token(self, token_plaintext):
         self._access_token = fernet.encrypt(token_plaintext.encode())
 
-class Repository(db.model):
+class Repository(db.Model):
     """
     Model to store a users repositories, with a summary of their commit messages.
     """
