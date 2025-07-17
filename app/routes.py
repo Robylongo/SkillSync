@@ -30,6 +30,16 @@ def nuthin():
     """
     return success_response({"message": "Dummy chill backend"})
 
+@bp.route('/users')
+def all_user():
+    """
+    Returns all users.
+    """
+
+    users = [user.serialize() for user in User.query.all()]
+
+    return success_response({"users": users})
+
 @bp.route('/login/github')
 def github_login():
     """
@@ -64,7 +74,7 @@ def github_callback():
                                  headers={"Authorization": f"token {access_token}"})
     user_data = user_response.json()
     username = user_data['login']
-    exists = User.query.filter_by(access_token = access_token).first()
+    exists = User.query.filter_by(github_username = username).first()
     if not exists:
         user = User(access_token = access_token, github_username = username)
         db.session.add(user)
