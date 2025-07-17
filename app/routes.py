@@ -1,6 +1,8 @@
 import os
 import requests
 from flask import Blueprint, jsonify, redirect, request, session, url_for
+from models import User
+from . import db
 
 bp = Blueprint('main', __name__)
 
@@ -61,7 +63,13 @@ def github_callback():
     user_response = requests.get("https://api.github.com/user",
                                  headers={"Authorization": f"token {access_token}"})
     user_data = user_response.json()
-    session['github_username'] = user_data['login']
+    username = user_data['login']
+    exists = User.query.filter_by(access_token = access_token).first()
+    if not exists:
+        user = User(access_token = access_token, github_username = username)
+        db.session.add(user)
+        db.session.commit()
+    session['github_username'] = username
     session['access_token'] = access_token
 
-    return success_response({"message": f"Logged in as {user_data['login']}"}, 200)
+    return success_response({"message": f"Logged in as {username}"}, 200)
