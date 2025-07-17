@@ -19,4 +19,4 @@ NLP: spaCy, TF-IDF
 - [ ] skill parser
 - [ ] Recommendation logic
 - [ ] API endpoints
-- [ ] Frontend UI (maybe, idk)# SkillSync
+- [ ] Frontend UI (maybe, idk)
