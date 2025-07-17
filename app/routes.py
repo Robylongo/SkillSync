@@ -3,7 +3,7 @@ import requests
 from flask import Blueprint, jsonify, redirect, request, session, url_for
 from .models import User
 from . import db
-
+from .github_handler import github_handler
 bp = Blueprint('main', __name__)
 
 # generalized response formats
@@ -83,3 +83,14 @@ def github_callback():
     session['access_token'] = access_token
 
     return success_response({"message": f"Logged in as {username}"}, 200)
+
+@bp.route('/github/repos')
+def github_repos():
+    """
+    Returns repos?
+    """
+    access_token = session.get("access_token")
+    username = session.get("github_username")
+    if not access_token:
+        return failure_response("Unauthorized", 401)
+    data = github_handler(username, access_token)
