@@ -6,10 +6,16 @@ bp = Blueprint('main', __name__)
 
 # generalized response formats
 def success_response(data, code=200):
+    """
+    Default success response
+    """
     return jsonify(data), code
 
 
 def failure_response(message, code=404):
+    """
+    Default failure response
+    """
     return jsonify({"error": message}), code
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
@@ -17,10 +23,16 @@ GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 
 @bp.route('/')
 def nuthin():
+    """
+    Index route
+    """
     return success_response({"message": "Dummy chill backend"})
 
 @bp.route('/login/github')
 def github_login():
+    """
+    Redirects the user to Github's OAuth page. Returns a redirect to Githubs authorization endpoint.
+    """
     auth_url = "https://github.com/login/oauth/authorize"
     redirect_uri = url_for('main.github_callback', _external=True)
 
@@ -28,6 +40,9 @@ def github_login():
 
 @bp.route('/callback/github')
 def github_callback():
+    """
+    Handles the callback from Github and logs the user in. Returns a response confirming login success.
+    """
     code = request.args.get("code")
 
     response = requests.post("https://github.com/login/oauth/access_token", 
@@ -49,4 +64,4 @@ def github_callback():
     session['github_username'] = user_data['login']
     session['access_token'] = access_token
 
-    return jsonify({"message": f"Logged in as {user_data['login']}"})
+    return success_response({"message": f"Logged in as {user_data['login']}"}, 200)
