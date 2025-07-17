@@ -1,7 +1,7 @@
 import os
 import requests
 from flask import Blueprint, jsonify, redirect, request, session, url_for
-from models import User
+from .models import User
 from . import db
 
 bp = Blueprint('main', __name__)
