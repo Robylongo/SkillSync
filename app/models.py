@@ -11,24 +11,29 @@ fernet = Fernet(os.getenv("ENCRYPTION_KEY"))
 class User(db.Model):
     """
     User model
-    TBD
     """
-    __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True)
     _access_token = db.Column("access_token", db.LargeBinary)
     github_username = db.Column(db.String(64), nullable = False, unique=True)
     resume_uploaded = db.Column(db.Boolean, default=False)
+
+    # relationship
+    repositories = db.relationship("Repository", backref="user",lazy=True)
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
     
     def serialize(self):
+        """
+        Serialized version of a user. Includes repositories
+        """
         return {
             "id": self.id,
             "github_username": self.github_username,
-            "resume_uploaded": self.resume_uploaded
+            "resume_uploaded": self.resume_uploaded,
+            "repositories": [reps.serialize() for reps in self.repositories]
         }
     
     @hybrid_property
@@ -40,3 +45,25 @@ class User(db.Model):
     @access_token.setter
     def access_token(self, token_plaintext):
         self._access_token = fernet.encrypt(token_plaintext.encode())
+
+class Repository(db.model):
+    """
+    Model to store a users repositories, with a summary of their commit messages.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    name = db.Column(db.String)
+    languages = db.Column(db.String)
+    description = db.Column(db.String)
+    commit_summary = db.Column(db.JSON)
+
+    def seralize(self):
+        return {
+            "id" : self.id,
+            "name": self.name,
+            "languages": self.languages,
+            "description": self.description,
+            "commit_summary": self.commit_summary
+        }
+
