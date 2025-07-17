@@ -16,7 +16,6 @@ NLP: spaCy, TF-IDF
 ## Roadmap
 - [ ] Github OAuth and commit fetch
 - [ ] Resume upload and parsing
-- [ ] skill parser
 - [ ] Recommendation logic
 - [ ] API endpoints
 - [ ] Frontend UI (maybe, idk)
