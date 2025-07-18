@@ -1,6 +1,7 @@
 from . import db
 from .models import User, Repository
 import requests
+import re
 
 # Topic keywords kindly provided by Chatham Grant-Parker-Turner (ChatGPT)
 TOPIC_KEYWORDS = {
@@ -81,12 +82,11 @@ TOPIC_KEYWORDS = {
 }
 
 
-
-
-
-
 def github_handler(username, access_token):
-    # API Call for ALL repos
+    """
+    Adds all of a users repos into the repo model. 
+    Extracts information like name, description (if applicable), languages used, and a summary of skills shown in their commits
+    """
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": "application/vnd.github+json"
@@ -114,6 +114,9 @@ def github_handler(username, access_token):
 
 
 def get_languages(username, repo_name, access_token):
+    """
+    Gets languages used in a repo and returns a list of them. Langauges who are <5% of a repos total bytes are discarded.
+    """
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": "application/vnd.github+json"
@@ -130,10 +133,13 @@ def get_languages(username, repo_name, access_token):
         for language, byte in languages.items()
         if byte/total >= 0.05
     }
-    lang_string = ", ".join(main_languages.keys())
-    return lang_string
+    lang_list = list(main_languages.keys())
+    return lang_list
 
 def make_commit_summary(username, repo_name, access_token):
+    """
+    Gets all of a users commit messages and returns a list of topic keywords (show above) that are shown by those messages.
+    """
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": "application/vnd.github+json"
@@ -161,4 +167,19 @@ def make_commit_summary(username, repo_name, access_token):
         else:
             break
 
-    # we have commits as a full list of commits
+    def extract_topics_from_commits(commit_messages):
+        """
+        Helper function to match commit messages to topics.
+        """
+        matched = set()
+        for msg in commit_messages:
+            msg = msg.lower()
+            tokens = re.findall(r"\b[a-z]+\b", msg)
+            for topic, keywords in TOPIC_KEYWORDS.items():
+                if any(kw in tokens for kw in keywords):
+                    matched.add(topic)
+        return list(matched)
+    
+    return extract_topics_from_commits(commits)
+
+
