@@ -54,14 +54,14 @@ class Repository(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.String)
-    languages = db.Column(db.String)
-    description = db.Column(db.String)
-    commit_summary = db.Column(db.JSON)
+    languages = db.Column(db.JSON, default=list)
+    description = db.Column(db.String, nullable=True)
+    commit_summary = db.Column(db.JSON, default=list)
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-            
+
     def seralize(self):
         return {
             "id" : self.id,
