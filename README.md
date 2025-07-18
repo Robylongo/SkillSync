@@ -14,7 +14,7 @@ Auth: Github OAuth\
 NLP: spaCy, TF-IDF
 
 ## Roadmap
-- [ ] Github OAuth and commit fetch
+- [✔️] Github OAuth and commit fetch
 - [ ] Resume upload and parsing
 - [ ] Recommendation logic
 - [ ] API endpoints
