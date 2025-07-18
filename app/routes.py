@@ -1,7 +1,7 @@
 import os
 import requests
 from flask import Blueprint, jsonify, redirect, request, session, url_for
-from .models import User
+from .models import User, Repository
 from . import db
 from .github_handler import github_handler
 bp = Blueprint('main', __name__)
@@ -39,6 +39,16 @@ def all_user():
     users = [user.serialize() for user in User.query.all()]
 
     return success_response({"users": users})
+
+@bp.route('/<int:user_id>/repos')
+def all_repos_for_user(user_id):
+    """
+    Returns all repos for a user.
+    """
+    repos = Repository.query.filter_by(user_id=user_id).all()
+    repo_list = [repo.serialize() for repo in repos]
+
+    return success_response({"repos": repo_list})
 
 @bp.route('/login/github')
 def github_login():
@@ -84,13 +94,14 @@ def github_callback():
 
     return success_response({"message": f"Logged in as {username}"}, 200)
 
-@bp.route('/github/repos')
+@bp.route('/github/repos', methods=["POST"])
 def github_repos():
     """
-    Returns repos?
+    Adds a users repos to the database
     """
     access_token = session.get("access_token")
     username = session.get("github_username")
     if not access_token:
         return failure_response("Unauthorized", 401)
-    data = github_handler(username, access_token)
+    github_handler(username, access_token)
+    return success_response({"message": "successfully added user's repos to the database."})
