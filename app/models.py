@@ -62,7 +62,7 @@ class Repository(db.Model):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def seralize(self):
+    def serialize(self):
         return {
             "id" : self.id,
             "name": self.name,
