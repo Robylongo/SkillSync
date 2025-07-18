@@ -58,6 +58,10 @@ class Repository(db.Model):
     description = db.Column(db.String)
     commit_summary = db.Column(db.JSON)
 
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+            
     def seralize(self):
         return {
             "id" : self.id,
