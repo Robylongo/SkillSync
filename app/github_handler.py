@@ -130,7 +130,7 @@ def get_languages(username, repo_name, access_token):
         return
     
     languages = response.json()
-    total = languages.sum()
+    total = sum(languages.values())
     main_languages = {
         language: byte
         for language, byte in languages.items()
