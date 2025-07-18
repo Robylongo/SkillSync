@@ -100,7 +100,10 @@ def github_handler(username, access_token):
     repos = response.json()
     for repo in repos:
         fork = repo.get("fork")
-        if fork:
+        repo_name = repo.get("name")
+        repo_description = repo.get("description")
+        existing = Repository.query.filter_by(name=repo_name).first()
+        if fork or existing:
             continue
         repo_name = repo.get("name")
         repo_description = repo.get("description")
