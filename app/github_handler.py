@@ -2,6 +2,89 @@ from . import db
 from .models import User, Repository
 import requests
 
+# Topic keywords kindly provided by Chatham Grant-Parker-Turner (ChatGPT)
+TOPIC_KEYWORDS = {
+    # 🧪 Testing
+    "testing": [
+        "test", "tests", "pytest", "unittest", "coverage", "assert"
+    ],
+
+    # 🔐 Authentication & Authorization
+    "auth": [
+        "auth", "login", "logout", "register", "signup", "signin", "token", "oauth", "jwt", "session"
+    ],
+
+    # 🌐 API Design / Backend
+    "api design": [
+        "api", "endpoint", "route", "jsonify", "request", "response", "rest", "handler", "query param", "http"
+    ],
+
+    # 🧩 Frontend
+    "frontend": [
+        "ui", "ux", "css", "html", "navbar", "layout", "style", "button", "design", "react", "component"
+    ],
+
+    # 🗃️ Database
+    "database": [
+        "db", "model", "schema", "migration", "sql", "sqlite", "postgres", "mysql", "query", "orm", "foreign key", "relationship"
+    ],
+
+    # ⚙️ DevOps / Infrastructure
+    "devops": [
+        "docker", "container", "build", "ci", "pipeline", "deployment", "heroku", "nginx", "server", "infrastructure"
+    ],
+
+    # 🧼 Refactoring / Optimization
+    "refactoring": [
+        "refactor", "cleanup", "optimize", "simplify", "rename", "extract", "restructure", "performance"
+    ],
+
+    # 📦 Package Management
+    "dependencies": [
+        "requirement", "dependency", "install", "update package", "pip", "npm", "yarn", "package.json", "setup.py"
+    ],
+
+    # 🪲 Bug Fixes
+    "bugfix": [
+        "fix", "bug", "error", "issue", "patch", "broken", "crash", "exception", "debug"
+    ],
+
+    # 🛡️ Security
+    "security": [
+        "vulnerability", "secure", "encryption", "validation", "hash", "csrf", "xss", "injection", "sanitization", "exploit"
+    ],
+
+    # 🧠 Machine Learning / Data Science
+    "machine learning": [
+        "model", "train", "ml", "sklearn", "regression", "classifier", "tensorflow", "pytorch", "fit", "predict", "inference", "dataset"
+    ],
+
+    # 📊 Data Engineering
+    "data engineering": [
+        "etl", "data", "pipeline", "ingest", "transform", "load", "csv", "parquet", "bigquery", "dataset", "dataframe"
+    ],
+
+    # 📈 Analytics / Logging
+    "analytics": [
+        "log", "track", "event", "metric", "analytics", "insight", "report", "monitor", "dashboard"
+    ],
+
+    # 🧪 QA / Documentation
+    "documentation": [
+        "readme", "doc", "docs", "comment", "guide", "instruction", "howto", "markdown"
+    ],
+
+    # 🧪 CI/CD (Explicit)
+    "cicd": [
+        "ci", "cd", "workflow", "github actions", "pipeline", "automate", "deployment"
+    ]
+}
+
+
+
+
+
+
 def github_handler(username, access_token):
     # API Call for ALL repos
     headers = {
