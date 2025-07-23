@@ -7,3 +7,5 @@ PyMuPDF
 pytest
 spacy
 cryptography
+flask_wtf
+wtforms
