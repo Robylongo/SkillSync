@@ -48,7 +48,7 @@ class User(db.Model):
 
 class Repository(db.Model):
     """
-    Model to store a users repositories, with a summary of their commit messages.
+    Model to store a user's repositories, with a summary of their commit messages.
     """
 
     id = db.Column(db.Integer, primary_key=True)
@@ -71,3 +71,13 @@ class Repository(db.Model):
             "commit_summary": self.commit_summary
         }
 
+class ResumeData(db.model):
+    """
+    Model to store a user's resume
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    og_filename = db.Column(db.String)
+    extracted_skills = db.Column(db.JSON)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id", nullable=False))
+
+    user = db.relationship("User", backref="resume_data")
