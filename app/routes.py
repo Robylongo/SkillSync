@@ -9,6 +9,7 @@ from wtforms import FileField, SubmitField
 from werkzeug.utils import secure_filename
 import os 
 from wtforms.validators import InputRequired
+from .resume_checker import resume_parser
 
 bp = Blueprint('main', __name__)
 
@@ -28,6 +29,10 @@ def failure_response(message, code=404):
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
@@ -45,14 +50,29 @@ def nuthin():
 @bp.route('/home', methods=["GET", "POST"])
 def home():
     form = UploadFileForm()
+    username = session.get("github_username")
     if form.validate_on_submit():
-        print("inside if")
+
         file = form.file.data
-        print("got file")
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, secure_filename(file.filename)))
-        print("Saved file")
+        filename = secure_filename(file.filename)
+
+        if not allowed_file(filename):
+            return "Invalid file type. Upload a PDF, DOCX, or TXT."
+        
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, filename))
+        
+        content = file.read()
+        text = content.decode("utf-8")
+        print(text)
+        skills = resume_parser(content)
+
+        user = User.query.filter_by(github_username=username).first()
+        print(user.id)
+
+        # SAVE RESUME IN MODEL
+
         return "File has been uploaded."
-    return render_template('index.html', form=form)
+    return render_template('index.html', form=form, username=username)
 
 @bp.route('/users')
 def all_user():
@@ -115,6 +135,7 @@ def github_callback():
         db.session.commit()
     session['github_username'] = username
     session['access_token'] = access_token
+    return redirect(url_for("main.home"))
 
     return success_response({"message": f"Logged in as {username}"}, 200)
 
