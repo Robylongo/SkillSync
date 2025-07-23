@@ -1,6 +1,7 @@
 import pytest
 from app import create_app
-from app.models import User, db
+from app.models import User, db, Repository
+from unittest.mock import patch
 
 @pytest.fixture
 def app():
