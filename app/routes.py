@@ -1,9 +1,15 @@
 import os
 import requests
-from flask import Blueprint, jsonify, redirect, request, session, url_for
+from flask import Blueprint, jsonify, redirect, request, session, url_for, render_template
 from .models import User, Repository
 from . import db
 from .github_handler import github_handler
+from flask_wtf import FlaskForm
+from wtforms import FileField, SubmitField
+from werkzeug.utils import secure_filename
+import os 
+from wtforms.validators import InputRequired
+
 bp = Blueprint('main', __name__)
 
 # generalized response formats
@@ -23,12 +29,30 @@ def failure_response(message, code=404):
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 
+class UploadFileForm(FlaskForm):
+    file = FileField("File", validators=[InputRequired()])
+    submit = SubmitField("Upload File")
+
+upload_folder = "static/files"
+
 @bp.route('/')
 def nuthin():
     """
     Index route
     """
     return success_response({"message": "Dummy chill backend"})
+
+@bp.route('/home', methods=["GET", "POST"])
+def home():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        print("inside if")
+        file = form.file.data
+        print("got file")
+        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, secure_filename(file.filename)))
+        print("Saved file")
+        return "File has been uploaded."
+    return render_template('index.html', form=form)
 
 @bp.route('/users')
 def all_user():
