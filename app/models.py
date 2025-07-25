@@ -77,7 +77,23 @@ class ResumeData(db.model):
     """
     id = db.Column(db.Integer, primary_key=True)
     og_filename = db.Column(db.String)
-    extracted_skills = db.Column(db.JSON)
+    extracted_skills = db.Column(db.JSON, nullable=True)
+    supported_skills = db.Column(db.JSON, nullable=True)
+    skill_gaps = db.Column(db.JSON, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", nullable=False))
 
     user = db.relationship("User", backref="resume_data")
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "og_filename": self.og_filename,
+            "extracted_skills": self.extracted_skills,
+            "supported_skills": self.supported_skills,
+            "skill_gaps": self.skill_gaps,
+            "user_id": self.user_id
+        }
