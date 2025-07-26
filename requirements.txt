@@ -9,3 +9,4 @@ spacy
 cryptography
 flask_wtf
 wtforms
+python-docx
