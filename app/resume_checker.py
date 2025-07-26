@@ -49,12 +49,16 @@ SKILL_LIST = (
     TOOLS_MISC
 )
 
+# spaCy PhraseMatcher initialization
 nlp = spacy.load("en_core_web_sm")
 matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
 patterns = [nlp(skill) for skill in SKILL_LIST]
 matcher.add("SKILLS", patterns)
 
 def match_skills(text):
+    """
+    Grabs a list of skills from the provided text. Skills are from the above skill list.
+    """
     doc = nlp(text)
     matches = matcher(doc)
 
@@ -64,8 +68,15 @@ def match_skills(text):
         found.add(span.text.lower())
     return list(found)
 
+
+def split_sections(text):
+    """
+    Split the resume into 3 sections: skills, experience, projects
+    """
+    return None
+
 def resume_parser(resume):
     """
-    extract skills
+    extract skills...
     """
     return None
