@@ -10,6 +10,8 @@ from werkzeug.utils import secure_filename
 import os 
 from wtforms.validators import InputRequired
 from .resume_checker import resume_parser
+import fitz
+from docx import Document
 
 bp = Blueprint('main', __name__)
 
@@ -32,9 +34,30 @@ GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
 
 def allowed_file(filename):
+    """
+    Checks if a file has the allowed extension.
+    """
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def extract_text(filename, byte_content):
+    """
+    Extracts text from the document depending on what type of extension it has.
+    """
+    if filename.endswith(".pdf"):
+        with fitz.open(stream=byte_content, filetype="pdf") as doc:
+            text = "".join(page.get_text() for page in doc)
+    elif filename.endswith(".docx"):
+        document = Document(byte_content)
+        text = "\n".join([para.text for para in document.paragraphs])
+    elif filename.endswith(".txt"):
+        text = byte_content.decode("utf-8")
+    
+    return text
+
 class UploadFileForm(FlaskForm):
+    """
+    Class to allow for file uploads on the frontend.
+    """
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Upload File")
 
@@ -49,25 +72,27 @@ def nuthin():
 
 @bp.route('/home', methods=["GET", "POST"])
 def home():
+    """
+    Route that shows the user a file upload form to upload their resume.
+    """
     form = UploadFileForm()
     username = session.get("github_username")
     if form.validate_on_submit():
 
         file = form.file.data
-        filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename.lower())
 
         if not allowed_file(filename):
             return "Invalid file type. Upload a PDF, DOCX, or TXT."
         
         file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, filename))
         
-        content = file.read()
-        text = content.decode("utf-8")
-        print(text)
-        skills = resume_parser(content)
+        byte_content = file.read()
+
+        text = extract_text(filename, byte_content)
+        skills = resume_parser(text)
 
         user = User.query.filter_by(github_username=username).first()
-        print(user.id)
 
         # SAVE RESUME IN MODEL
 
@@ -137,7 +162,7 @@ def github_callback():
     session['access_token'] = access_token
     return redirect(url_for("main.home"))
 
-    return success_response({"message": f"Logged in as {username}"}, 200)
+    # return success_response({"message": f"Logged in as {username}"}, 200)
 
 @bp.route('/github/repos', methods=["POST"])
 def github_repos():
