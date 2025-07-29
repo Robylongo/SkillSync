@@ -1,7 +1,7 @@
 import os
 import requests
 from flask import Blueprint, jsonify, redirect, request, session, url_for, render_template
-from .models import User, Repository
+from .models import User, Repository, ResumeData
 from . import db
 from .github_handler import github_handler
 from flask_wtf import FlaskForm
@@ -102,7 +102,13 @@ def home():
 
         user = User.query.filter_by(github_username=username).first()
 
-        # SAVE RESUME IN MODEL
+        resume_data = ResumeData(og_filename = filename, 
+                                 extracted_skills = extracted_skills, 
+                                 supported_skills = supported_skills, 
+                                 skill_gaps = skill_gaps, 
+                                 user_id = user.id)
+        db.session.add(resume_data)
+        db.session.commit()
 
         return "File has been uploaded."
     return render_template('index.html', form=form, username=username)
