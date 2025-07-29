@@ -43,14 +43,19 @@ def extract_text(filename, byte_content):
     """
     Extracts text from the document depending on what type of extension it has.
     """
-    if filename.endswith(".pdf"):
-        with fitz.open(stream=byte_content, filetype="pdf") as doc:
-            text = "".join(page.get_text() for page in doc)
-    elif filename.endswith(".docx"):
-        document = Document(byte_content)
-        text = "\n".join([para.text for para in document.paragraphs])
-    elif filename.endswith(".txt"):
-        text = byte_content.decode("utf-8")
+    try:
+
+        if filename.endswith(".pdf"):
+            with fitz.open(stream=byte_content, filetype="pdf") as doc:
+                text = "".join(page.get_text() for page in doc)
+        elif filename.endswith(".docx"):
+            document = Document(byte_content)
+            text = "\n".join([para.text for para in document.paragraphs])
+        elif filename.endswith(".txt"):
+            text = byte_content.decode("utf-8")
+    except Exception as e:
+        print("Failed to parse resume:", e)
+        text = ""
     
     return text
 
@@ -90,7 +95,10 @@ def home():
         byte_content = file.read()
 
         text = extract_text(filename, byte_content)
-        skills = resume_parser(text)
+
+        if text == "":
+            return "Resume could not be parsed"
+        extracted_skills, supported_skills, skill_gaps = resume_parser(text)
 
         user = User.query.filter_by(github_username=username).first()
 
