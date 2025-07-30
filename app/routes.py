@@ -12,6 +12,7 @@ from wtforms.validators import InputRequired
 from .resume_checker import resume_parser
 import fitz
 from docx import Document
+import io
 
 bp = Blueprint('main', __name__)
 
@@ -45,13 +46,14 @@ def extract_text(filename, byte_content):
     """
     try:
 
-        if filename.endswith(".pdf"):
+        if filename.lower().endswith(".pdf"):
             with fitz.open(stream=byte_content, filetype="pdf") as doc:
                 text = "".join(page.get_text() for page in doc)
-        elif filename.endswith(".docx"):
-            document = Document(byte_content)
+        elif filename.lower().endswith(".docx"):
+            file_stream = io.BytesIO(byte_content)
+            document = Document(file_stream)
             text = "\n".join([para.text for para in document.paragraphs])
-        elif filename.endswith(".txt"):
+        elif filename.lower().endswith(".txt"):
             text = byte_content.decode("utf-8")
     except Exception as e:
         print("Failed to parse resume:", e)
@@ -90,9 +92,11 @@ def home():
         if not allowed_file(filename):
             return "Invalid file type. Upload a PDF, DOCX, or TXT."
         
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, filename))
-        
         byte_content = file.read()
+
+        save_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, filename)
+        with open(save_path, "wb") as f:
+            f.write(byte_content)
 
         text = extract_text(filename, byte_content)
 
@@ -101,7 +105,9 @@ def home():
         extracted_skills, supported_skills, skill_gaps = resume_parser(text)
 
         user = User.query.filter_by(github_username=username).first()
-
+        # exists = ResumeData.query.filter_by(user_id = user_id).first()
+        # if not exists:
+        
         resume_data = ResumeData(og_filename = filename, 
                                  extracted_skills = extracted_skills, 
                                  supported_skills = supported_skills, 
@@ -132,6 +138,15 @@ def all_repos_for_user(user_id):
     repo_list = [repo.serialize() for repo in repos]
 
     return success_response({"repos": repo_list})
+
+@bp.route('/<int:user_id>/resume')
+def user_resume(user_id):
+    """
+    Return the users resume details
+    """
+    resumes = ResumeData.query.filter_by(user_id=user_id).all()
+    resume_list = [resume.serialize() for resume in resumes]
+    return success_response({"resume(s)": resume_list})
 
 @bp.route('/login/github')
 def github_login():
