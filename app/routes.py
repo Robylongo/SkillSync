@@ -75,49 +75,8 @@ def nuthin():
     """
     Index route
     """
-    return success_response({"message": "Dummy chill backend"})
+    return render_template("index.html")
 
-@bp.route('/home', methods=["GET", "POST"])
-def home():
-    """
-    Route that shows the user a file upload form to upload their resume.
-    """
-    form = UploadFileForm()
-    username = session.get("github_username")
-    if form.validate_on_submit():
-
-        file = form.file.data
-        filename = secure_filename(file.filename.lower())
-
-        if not allowed_file(filename):
-            return "Invalid file type. Upload a PDF, DOCX, or TXT."
-        
-        byte_content = file.read()
-
-        save_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), upload_folder, filename)
-        with open(save_path, "wb") as f:
-            f.write(byte_content)
-
-        text = extract_text(filename, byte_content)
-
-        if text == "":
-            return "Resume could not be parsed"
-        extracted_skills, supported_skills, skill_gaps = resume_parser(text)
-
-        user = User.query.filter_by(github_username=username).first()
-        # exists = ResumeData.query.filter_by(user_id = user_id).first()
-        # if not exists:
-        
-        resume_data = ResumeData(og_filename = filename, 
-                                 extracted_skills = extracted_skills, 
-                                 supported_skills = supported_skills, 
-                                 skill_gaps = skill_gaps, 
-                                 user_id = user.id)
-        db.session.add(resume_data)
-        db.session.commit()
-
-        return "File has been uploaded."
-    return render_template('index.html', form=form, username=username)
 
 @bp.route('/users')
 def all_user():
@@ -189,9 +148,8 @@ def github_callback():
         db.session.commit()
     session['github_username'] = username
     session['access_token'] = access_token
-    return redirect(url_for("main.home"))
+    return redirect(url_for("main.dashboard"))
 
-    # return success_response({"message": f"Logged in as {username}"}, 200)
 
 @bp.route('/github/repos', methods=["POST"])
 def github_repos():
@@ -204,3 +162,79 @@ def github_repos():
         return failure_response("Unauthorized", 401)
     github_handler(username, access_token)
     return success_response({"message": "successfully added user's repos to the database."})
+
+@bp.route('/dashboard', methods=["GET", "POST"])
+def dashboard():
+    username = session.get("github_username")
+    if not username:
+        return redirect(url_for("main.github_login"))
+    user = User.query.filter_by(github_username=username).first()
+    existing_resume = ResumeData.query.filter_by(user_id=user.id).first()
+
+    form = UploadFileForm()
+
+    if form.validate_on_submit():
+        file = form.file.data
+        filename = secure_filename(file.filename.lower())
+
+        if not allowed_file(filename):
+            return "Invalid file type. Upload a PDF, DOCX, or TXT."
+
+        byte_content = file.read()
+        save_path = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)),
+            upload_folder,
+            f"{user.id}_{filename}"
+        )
+        if existing_resume and os.path.exists(existing_resume.og_filename):
+            os.remove(existing_resume.og_filename)
+        
+        file.save(save_path)
+
+        
+        text = extract_text(filename, byte_content)
+        if text == "":
+            return "Resume could not be parsed"
+
+        extracted_skills, supported_skills, skill_gaps = resume_parser(text)
+
+        if existing_resume:
+            # Overwrite fields on existing record
+            existing_resume.og_filename = save_path
+            existing_resume.extracted_skills = extracted_skills
+            existing_resume.supported_skills = supported_skills
+            existing_resume.skill_gaps = skill_gaps
+        else:
+            # Create new record
+            new_resume = ResumeData(
+                user_id=user.id,
+                og_filename=filename,
+                extracted_skills=extracted_skills,
+                supported_skills=supported_skills,
+                skill_gaps=skill_gaps
+            )
+            user.resume_uploaded = True
+            db.session.add(new_resume)
+
+        db.session.commit()
+
+    return render_template("dashboard.html", username=username, form=form)
+
+
+
+
+# RECOMMENDER. WORK IN PROGRESS
+@bp.route('/recommendations', methods=["POST"])
+def recommendations():
+    username = session.get("github_username")
+    if not username:
+        return failure_response("Unauthorized", 401)
+    
+    # Example: run skill recommender logic
+    user = User.query.filter_by(github_username=username).first()
+    resume_data = ResumeData.query.filter_by(user_id=user.id).first()
+    if not resume_data:
+        return failure_response("No resume found", 400)
+
+    # recs = skill_recommender(resume_data) 
+    # return success_response({"recommendations": recs})
