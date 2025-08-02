@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ username }}</h1>
+
+    <!-- Generate Commit Summaries -->
+    <h2>GitHub Repositories</h2>
+    <button id="generateRepos">Generate Commit Summaries</button>
+    <p id="reposStatus"></p>
+
+    <hr>
+
+    <!-- Resume Upload -->
+    <h2>Upload Resume</h2>
+    <form id="resumeForm" method="POST" enctype="multipart/form-data" action="{{ url_for('main.dashboard') }}">
+        {{ form.hidden_tag() }}
+        {{ form.file() }}
+        {{ form.submit() }}
+    </form>
+
+    <hr>
+
+    <!-- Get Recommendations -->
+    <h2>Skill Recommendations</h2>
+    <button id="getRecommendations">Get Recommendations</button>
+    <div id="recommendationsOutput"></div>
+
+    <script>
+    // Generate Commit Summaries
+    document.getElementById("generateRepos").addEventListener("click", () => {
+        fetch("/github/repos", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("reposStatus").innerText = data.message || "Done.";
+            })
+            .catch(err => console.error(err));
+    });
+
+    // Get Recommendations
+    document.getElementById("getRecommendations").addEventListener("click", () => {
+        fetch("/recommendations", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("recommendationsOutput").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(err => console.error(err));
+    });
+    </script>
+</body>
+</html>
