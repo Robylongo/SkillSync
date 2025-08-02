@@ -13,6 +13,7 @@ from .resume_checker import resume_parser
 import fitz
 from docx import Document
 import io
+from .recommender import skill_recommender
 
 bp = Blueprint('main', __name__)
 
@@ -236,5 +237,5 @@ def recommendations():
     if not resume_data:
         return failure_response("No resume found", 400)
 
-    # recs = skill_recommender(resume_data) 
+    recs = skill_recommender(user, resume_data) 
     # return success_response({"recommendations": recs})
