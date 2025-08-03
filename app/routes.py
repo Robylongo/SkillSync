@@ -221,21 +221,16 @@ def dashboard():
 
     return render_template("dashboard.html", username=username, form=form)
 
-
-
-
-# RECOMMENDER. WORK IN PROGRESS
 @bp.route('/recommendations', methods=["POST"])
 def recommendations():
     username = session.get("github_username")
     if not username:
         return failure_response("Unauthorized", 401)
     
-    # Example: run skill recommender logic
     user = User.query.filter_by(github_username=username).first()
     resume_data = ResumeData.query.filter_by(user_id=user.id).first()
     if not resume_data:
         return failure_response("No resume found", 400)
 
     recs = skill_recommender(user, resume_data) 
-    # return success_response({"recommendations": recs})
+    return success_response({"recommendations": recs})
