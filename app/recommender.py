@@ -95,33 +95,51 @@ def smart_recommend_parent_priority_auto(resume_skills, commit_skills, skill_map
 
 
 def skill_recommender(user, resume_data):
-    recommendations = {}
+
     resume_skills = set(resume_data.extracted_skills)
-
-    # skill gaps
     skill_gaps = resume_data.skill_gaps
-    recommendations["skill_gaps"] = skill_gaps
 
-    # skills in commites but not resume
+    # Hidden strengths
     repos = Repository.query.filter_by(user_id=user.id).all()
     commit_summaries = set()
     for repo in repos:
-        summary = repo.serialize().get("commit_summary")
+        summary = repo.serialize().get("commit_summary", [])
         commit_summaries.update(summary)
     hidden_strengths = commit_summaries - resume_skills
-    recommendations["hidden_strengths"] = list(hidden_strengths)
 
-    # adjacent skills
+    # Adjacent skills
     recs = smart_recommend_parent_priority_auto(resume_skills, commit_summaries)
-    recommendations["smart_recommendations"] = [
-        {
-            "base_skill": base_skill,
-            "recommended_skills": new_skills
-        }
-        for base_skill, new_skills in recs
-    ]
 
-    return recommendations
+    friendly_lines = []
+    if skill_gaps:
+        friendly_lines.append(
+            f"<p>📌 <b>Skill Gaps:</b> These are skills that show up in your resume's skill section but isnt backed up by any work experience/projcets: {', '.join(skill_gaps)}.</p>"
+        )
+    if hidden_strengths:
+        friendly_lines.append(
+            f"<p>💡 <b>Hidden Strengths:</b> These appear in your commits but not your resume — consider adding them: {', '.join(hidden_strengths)}.</p>"
+        )
+    if recs:
+        for base_skill, new_skills in recs:
+            friendly_lines.append(
+                f"<p>➡️ Since you already know <b>{base_skill}</b>, you could explore: {', '.join(new_skills)}.</p>"
+            )
+
+    formatted_html = "".join(friendly_lines)
+
+    return {
+        "raw": {
+            "skill_gaps": list(skill_gaps),
+            "hidden_strengths": list(hidden_strengths),
+            "smart_recommendations": [
+                {"base_skill": base_skill, "recommended_skills": new_skills}
+                for base_skill, new_skills in recs
+            ]
+        },
+        "formatted_html": formatted_html
+    }
+
+
 
 
 
