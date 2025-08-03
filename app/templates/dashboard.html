@@ -8,14 +8,12 @@
 <body>
     <h1>Welcome, {{ username }}</h1>
 
-    <!-- Generate Commit Summaries -->
     <h2>GitHub Repositories</h2>
     <button id="generateRepos">Generate Commit Summaries</button>
     <p id="reposStatus"></p>
 
     <hr>
 
-    <!-- Resume Upload -->
     <h2>Upload Resume</h2>
     <form id="resumeForm" method="POST" enctype="multipart/form-data" action="{{ url_for('main.dashboard') }}">
         {{ form.hidden_tag() }}
@@ -25,13 +23,11 @@
 
     <hr>
 
-    <!-- Get Recommendations -->
     <h2>Skill Recommendations</h2>
     <button id="getRecommendations">Get Recommendations</button>
     <div id="recommendationsOutput"></div>
 
     <script>
-    // Generate Commit Summaries
     document.getElementById("generateRepos").addEventListener("click", () => {
         fetch("/github/repos", { method: "POST" })
             .then(res => res.json())
@@ -40,13 +36,12 @@
             })
             .catch(err => console.error(err));
     });
-
-    // Get Recommendations
     document.getElementById("getRecommendations").addEventListener("click", () => {
         fetch("/recommendations", { method: "POST" })
-            .then(res => res.json())
+            .then(res => res.json()) 
             .then(data => {
-                document.getElementById("recommendationsOutput").innerText = JSON.stringify(data, null, 2);
+                document.getElementById("recommendationsOutput").innerHTML =
+                    data.formatted_html;  
             })
             .catch(err => console.error(err));
     });
