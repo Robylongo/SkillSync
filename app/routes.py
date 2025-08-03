@@ -232,5 +232,5 @@ def recommendations():
     if not resume_data:
         return failure_response("No resume found", 400)
 
-    recs = skill_recommender(user, resume_data) 
-    return success_response({"recommendations": recs})
+    recs = skill_recommender(user, resume_data)
+    return success_response(recs)
