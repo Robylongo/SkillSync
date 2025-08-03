@@ -15,7 +15,7 @@ NLP: spaCy, TF-IDF
 
 ## Roadmap
 - [x] Github OAuth and commit fetch
-- [ ] Resume upload and parsing
-- [ ] Recommendation logic
+- [x] Resume upload and parsing
+- [x] Recommendation logic
 - [ ] API endpoints
-- [ ] Frontend UI (maybe, idk)
+- [x] Frontend UI (maybe, idk)
