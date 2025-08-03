@@ -200,13 +200,11 @@ def dashboard():
         extracted_skills, supported_skills, skill_gaps = resume_parser(text)
 
         if existing_resume:
-            # Overwrite fields on existing record
             existing_resume.og_filename = save_path
             existing_resume.extracted_skills = extracted_skills
             existing_resume.supported_skills = supported_skills
             existing_resume.skill_gaps = skill_gaps
         else:
-            # Create new record
             new_resume = ResumeData(
                 user_id=user.id,
                 og_filename=filename,
